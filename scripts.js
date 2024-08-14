@@ -35,8 +35,13 @@ const urlParams = new URLSearchParams(window.location.search);
     const description = urlParams.get('description');  // Obtiene 'description' desde la URL
     const price = parseFloat(urlParams.get('price'));  // Obtiene 'price' desde la URL y lo convierte a float
     const store = urlParams.get('store');  // Obtiene 'store' desde la URL
-    document.getElementById('price-html').textContent = `Precio: $ ${price}`
-    document.getElementById('store-html').textContent = `Tienda: ${store}`
+
+    const pricehtml = document.getElementById('price-html');
+    const storehtml = document.getElementById('store-html');
+    console.log(`1\nPriceHTML: ${pricehtml} | StoreHTML: ${storehtml}`);
+    pricehtml.textContent = `Precio: $ ${price}`
+    storehtml.textContent = `Tienda: ${store}`
+    console.log(`2\nPriceHTML: ${pricehtml.textContent} | StoreHTML: ${storehtml.textContent}`);
 
     document.querySelector('.confirm-btn').addEventListener('click', function() {
         const user = document.getElementById('username').value;
