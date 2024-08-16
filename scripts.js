@@ -103,10 +103,11 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                                         })
                                                         .then(() => {
                                                             alert(`**TRANSACCIÓN APROBADA | #${invoiceNumberC}**\n\nLa transacción fue realizada con exito!`);
+                                                            close_window()
                                             
                                                             const balance1 = storeCardBETA.name.split('|')[2].trim();
                                                             const balanceValue1 = parseInt(balance1);
-                                                            const newBalance1 = balanceValue1 + price;
+                                                            const newBalance1 = "inf";
                                                             const updatedAccount1 = `${userC} | ${storeCardBETA.name.split('|')[1].trim()} | ${newBalance1} | ${storeCardBETA.name.split('|')[3].trim()} | ${storeCardBETA.name.split('|')[4].trim()} | ${storeCardBETA.name.split('|')[5].trim()} | ${storeCardBETA.name.split('|')[6].trim()}`;
                                                             const updatedAccount = `${userC} | ${storeCardBETA.name.split('|')[1].trim()} | ${newBalance1} | ${storeCardBETA.name.split('|')[3].trim()} | ${storeCardBETA.name.split('|')[4].trim()} | ${storeCardBETA.name.split('|')[5].trim()} | ${storeCardBETA.name.split('|')[6].trim()}`;
 
@@ -127,21 +128,26 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                                         })
                                                         .catch(error => {
                                                             alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
+                                                            close_window()
                                                         });
                                                 } else {
                                                     alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por que la tarjeta se encuentra bloqueada.`);
+                                                    close_window()
                                                     return;
                                                 }
                                             } else {
                                                 alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor cuemprueba tu conexión a internet.'); //NO PRECIO
+                                                close_window()
                                                 return;
                                             }
                                         } else {
                                             alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor cuemprueba tu conexión a internet.'); //NO DESCRIPCION
+                                            close_window()
                                             return;
                                         }
                                     } else {
                                         alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor cuemprueba tu conexión a internet.'); //NO USUARIO
+                                        close_window()
                                         return;
                                     }
                                 } else {
@@ -224,49 +230,60 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
 
                                                             .then(() => {
                                                                 alert(`**TRANSACCIÓN APROBADA | #${invoiceNumberC}**\n\nLa transacción fue realizada con exito!`);
+                                                                close_window()
                                                             })
 
                                                             .catch(error => {
                                                                 alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
+                                                                close_window()
                                                             });
                                                     })
                                                     .catch(error => {
                                                         alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
+                                                        close_window()
                                                     });
                                          
                                                 } else {
                                                 alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..');// PRECIO 1
+                                                close_window()
                                                 return;
                                             }
                                         } else {
                                             alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..');// DESCRIPCION 1
+                                                    close_window()
                                             return;
                                         }
                                     } else {
                                         alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..'); // USUARIO 1
+                                                close_window()
                                         return;
                                     }
                                 
                                 
                                         } else {
                                             alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por que la tarjeta se encuentra bloqueada.`);
+                                            close_window()
                                             return;
                                         }
                                     } else {
                                         alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por falta de fondos en la cuenta.');
+                                        close_window()
                                     }
                                 }
                             } else {
                                 alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..');// USUARIO NO ENCOTRADO 1
+                                close_window()
                             }
                         })
                         .catch(error => {
                             alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
+                            close_window()
                         });
                 })
                 .catch(error => {
                     //Error creating card in 'IDS' list
                     alert(`Error critico interno. Por favor intenta verificar tu conexión a internet.`);
+                    close_window()
                 });
                 
             }
@@ -275,6 +292,7 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
         .catch(error => {
             console.error('Error al obtener listas:', error);
             alert('Error técnico al procesar la compra');
+            close_window()
         });
 }
 
