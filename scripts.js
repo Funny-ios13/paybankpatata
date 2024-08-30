@@ -1,3 +1,7 @@
+function end_purchase() {
+    window.close()
+}
+
 document.getElementById('loginForm').addEventListener('submit', function(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
@@ -38,10 +42,8 @@ const urlParams = new URLSearchParams(window.location.search);
 
     const pricehtml = document.getElementById('price-html');
     const storehtml = document.getElementById('store-html');
-    console.log(`1\nPriceHTML: ${pricehtml} | StoreHTML: ${storehtml}`);
     pricehtml.textContent = `Precio: $ ${price}`
-    storehtml.textContent = `Tienda: ${store}`
-    console.log(`2\nPriceHTML: ${pricehtml.textContent} | StoreHTML: ${storehtml.textContent}`);
+    storehtml.textContent = `Descripción: ${description}`
 
     document.querySelector('.confirm-btn').addEventListener('click', function() {
         const user = document.getElementById('username').value;
@@ -54,6 +56,7 @@ function generateRandomID() {
 }
 
 function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
+    console.log(`Parametros Recibidos:\n${userC} | ${descriptionC} | ${priceC} | ${invoiceNumberC} | ${storeC}`)
     const boardId = '4nP65kjP';
     const apiKey = '42c42b2aeb78d2b5048bc85c88041207';
     const token = '5d2c98ce4d6ca544fca293a91f7720b55d79832cdf431358705656707ea11e1b';
@@ -80,8 +83,70 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                             const accCard = cards.find(card => card.name.startsWith(`${userC} | `));
                             const storeCardBETA = cards.find(card => card.name.startsWith(`${userC} | `));
 
-                            if (card && accCard) {
-                                const balance = accCard.name.split('|')[2].trim();
+                            const cardSTORE = cards.find(card => card.name.startsWith(`${storeC} / `));
+                            const accCardSTORE = cards.find(card => card.name.startsWith(`${storeC} | `));
+                            const storeCardBETAstore = cards.find(card => card.name.startsWith(`${storeC} | `));
+
+                            if (cardSTORE && accCardSTORE) {
+                                const balanceSTORE = accCardSTORE.name.split('|')[2].trim();
+
+                                   // if (balanceSTORE === 'inf') {
+                                        const cardenABLEDSTORE = accCardSTORE.name.split('|')[6].trim();
+
+                                        if (cardenABLEDSTORE === 'true') {
+
+                                            const newTransactionSTORE = `${`TiendaSystem#Factura:${invoiceNumberC}?Cliente:${userC}?Evento:${descriptionC}`} & ${priceC.toFixed(2)}`;
+                                            const updatedTransactionsSTORE = `${cardSTORE.name} ! ${newTransactionSTORE}`;
+
+                                            console.log(`Parametros Recibidos 2:\n\n${cardSTORE} | ${cardSTORE.name} | ${cardSTORE.id} | ${newTransactionSTORE}`);
+                                            
+                                        
+                                   // }
+                                
+                                
+
+                                fetch(`https://api.trello.com/1/cards/${cardSTORE.id}?key=${apiKey}&token=${token}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ name: updatedTransactionsSTORE })
+                                })
+                                .then(() => {
+                                    const balance1STORE = storeCardBETAstore.name.split('|')[2].trim();
+                                    const balanceValue1STORE = parseInt(balance1STORE);
+                                    const priceCOBRARSTORE12 = parseInt(priceC);
+                                    const priceCOBRARSTOREmmmm = priceCOBRARSTORE12 + balanceValue1STORE;
+                                    const newBalance1STORE = priceCOBRARSTOREmmmm.toFixed(2);
+                                    const newBalance1STOREString = newBalance1STORE.toString();
+                                    console.log(`|${balance1STORE} | ${balanceValue1STORE} | ${priceCOBRARSTOREmmmm} | ${newBalance1STORE} | ${newBalance1STOREString}`);
+                                    const updatedAccount1STORE = `${storeC} | ${storeCardBETAstore.name.split('|')[1].trim()} | ${newBalance1STOREString} | ${storeCardBETAstore.name.split('|')[3].trim()} | ${storeCardBETAstore.name.split('|')[4].trim()} | ${storeCardBETAstore.name.split('|')[5].trim()} | ${storeCardBETAstore.name.split('|')[6].trim()}`;
+                                    //const updatedAccountSTORE = `${storeC} | ${storeCardBETAstore.name.split('|')[1].trim()} | ${newBalance1STORE} | ${storeCardBETAstore.name.split('|')[3].trim()} | ${storeCardBETAstore.name.split('|')[4].trim()} | ${storeCardBETAstore.name.split('|')[5].trim()} | ${storeCardBETAstore.name.split('|')[6].trim()}`;
+
+                                    fetch(`https://api.trello.com/1/cards/${storeCardBETAstore.id}?key=${apiKey}&token=${token}`, {
+                                            method: 'PUT',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({ name: updatedAccount1STORE })
+                                        })
+                                        .then(() => {
+                                            //Mensaje a discord al dueño de la tienda
+                                        })
+                                        .catch(error => {
+                                            console.log(`Ocurrio un error: ${error}`)
+                                        });
+                                })
+                                .catch(() => {
+                                    alert("Error critico en el sistema. Por favor comprueba tu conexión a internet.")
+                                    return;
+                                })
+                            }
+                            }
+                            ////////
+
+                          if (card && accCard) {
+                            const balance = accCard.name.split('|')[2].trim();
 
                                 if (balance === 'inf') {
                                     if (userC !== "") {
@@ -93,6 +158,13 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
 
                                                     const newTransaction = `${descriptionC} & ${priceC.toFixed(2)}`;
                                                     const updatedTransactions = `${card.name} ! ${newTransaction}`;
+//////-----                                         
+                                                    console.log(`PARAMS: ${cardSTORE} | ${accCardSTORE}`);
+
+
+                                                    
+
+                                                    
 
                                                     fetch(`https://api.trello.com/1/cards/${card.id}?key=${apiKey}&token=${token}`, {
                                                             method: 'PUT',
@@ -103,7 +175,7 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                                         })
                                                         .then(() => {
                                                             alert(`**TRANSACCIÓN APROBADA | #${invoiceNumberC}**\n\nLa transacción fue realizada con exito!`);
-                                                            close_window()
+                                                            end_purchase()
                                             
                                                             const balance1 = storeCardBETA.name.split('|')[2].trim();
                                                             const balanceValue1 = parseInt(balance1);
@@ -128,30 +200,33 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                                         })
                                                         .catch(error => {
                                                             alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
-                                                            close_window()
+                                                            end_purchase()
                                                         });
                                                 } else {
                                                     alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por que la tarjeta se encuentra bloqueada.`);
-                                                    close_window()
+                                                    end_purchase()
                                                     return;
                                                 }
                                             } else {
                                                 alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor cuemprueba tu conexión a internet.'); //NO PRECIO
-                                                close_window()
+                                                end_purchase()
                                                 return;
                                             }
                                         } else {
-                                            alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor cuemprueba tu conexión a internet.'); //NO DESCRIPCION
-                                            close_window()
+                                            alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor comprueba tu conexión a internet.'); //NO DESCRIPCION
+                                            end_purchase()
                                             return;
                                         }
                                     } else {
-                                        alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor cuemprueba tu conexión a internet.'); //NO USUARIO
-                                        close_window()
+                                        alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor comprueba tu conexión a internet.'); //NO USUARIO
+                                        end_purchase()
                                         return;
                                     }
                                 } else {
                                     const balanceValue = parseInt(balance);
+                                    
+
+
 
                                     if (balanceValue >= priceC) {
                                         const cardenABLED = accCard.name.split('|')[6].trim();
@@ -169,7 +244,8 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                                     const balance1 = storeCardBETA.name.split('|')[2].trim();
                                                 const balanceValue1 = parseInt(balance1);
 
-                                                const newBalance1 = balanceValue1 + priceC;
+                                                const newBalance15 = balanceValue1 - priceC;
+                                                const newBalance1 = newBalance15.toFixed(2)
 
                                                 updatedAccount1 = `${userC} | ${storeCardBETA.name.split('|')[1].trim()} | ${newBalance1} | ${storeCardBETA.name.split('|')[3].trim()} | ${storeCardBETA.name.split('|')[4].trim()} | ${storeCardBETA.name.split('|')[5].trim()} | ${storeCardBETA.name.split('|')[6].trim()}`;
                                                 } else {
@@ -186,7 +262,8 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                                 const balanceValue = parseInt(balance);
 
                                    
-                                                const newBalance = balanceValue - priceC;
+                                                const newBalance16 = balanceValue - priceC;
+                                                const newBalance = newBalance16.toFixed(2)
 
                  
 
@@ -230,60 +307,60 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
 
                                                             .then(() => {
                                                                 alert(`**TRANSACCIÓN APROBADA | #${invoiceNumberC}**\n\nLa transacción fue realizada con exito!`);
-                                                                close_window()
+                                                                end_purchase()
                                                             })
 
                                                             .catch(error => {
                                                                 alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
-                                                                close_window()
+                                                                end_purchase()
                                                             });
                                                     })
                                                     .catch(error => {
                                                         alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
-                                                        close_window()
+                                                        end_purchase()
                                                     });
                                          
                                                 } else {
                                                 alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..');// PRECIO 1
-                                                close_window()
+                                                end_purchase()
                                                 return;
                                             }
                                         } else {
                                             alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..');// DESCRIPCION 1
-                                                    close_window()
+                                                    end_purchase()
                                             return;
                                         }
                                     } else {
                                         alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..'); // USUARIO 1
-                                                close_window()
+                                                end_purchase()
                                         return;
                                     }
                                 
                                 
                                         } else {
                                             alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por que la tarjeta se encuentra bloqueada.`);
-                                            close_window()
+                                            end_purchase()
                                             return;
                                         }
                                     } else {
                                         alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por falta de fondos en la cuenta.');
-                                        close_window()
+                                        end_purchase()
                                     }
                                 }
                             } else {
                                 alert('**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Por favor compueba tu conexión a internet..');// USUARIO NO ENCOTRADO 1
-                                close_window()
+                                end_purchase()
                             }
                         })
                         .catch(error => {
                             alert(`**TRANSACCIÓN RECHAZADA**\n\nLa transacción fue rechazada por un error interno. Error: ${error}`);
-                            close_window()
+                            end_purchase()
                         });
                 })
                 .catch(error => {
                     //Error creating card in 'IDS' list
                     alert(`Error critico interno. Por favor intenta verificar tu conexión a internet.`);
-                    close_window()
+                    end_purchase()
                 });
                 
             }
@@ -292,7 +369,7 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
         .catch(error => {
             console.error('Error al obtener listas:', error);
             alert('Error técnico al procesar la compra');
-            close_window()
+            end_purchase()
         });
 }
 
