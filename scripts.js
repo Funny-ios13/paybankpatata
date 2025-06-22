@@ -67,7 +67,7 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
             const idsList = lists.find(list => list.name === 'IDS');
             if (idsList) {
                 const formattedDate = new Date().toLocaleString();
-                const cardName = `#${invoiceNumberC} | STORE: ${storeC} | ${userC} | ${descriptionC} | ${priceC} | ${formattedDate}`;
+                const cardName = `#: ${invoiceNumberC} | TYPE: PURCHASE | FROM: ${userC} | TO: ${storeC} | DESC: ${descriptionC} | AMOUNT: ${priceC} | ISO_DATE: ${formattedDate}`;
                 fetch(`https://api.trello.com/1/cards?key=${apiKey}&token=${token}&idList=${idsList.id}&name=${cardName}`, {
                     method: 'POST',
                     headers: {
@@ -94,8 +94,8 @@ function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
                                         const cardenABLEDSTORE = accCardSTORE.name.split('|')[6].trim();
 
                                         if (cardenABLEDSTORE === 'true') {
-
-                                            const newTransactionSTORE = `${`TiendaSystem#Factura:${invoiceNumberC}?Cliente:${userC}?Evento:${descriptionC}`} & ${priceC.toFixed(2)}`;
+                                            const formattedDateXD = new Date().toLocaleString();
+                                            const newTransactionSTORE = `${`TiendaSystem#Factura:${invoiceNumberC}?Cliente:${userC}?Evento:${descriptionC}`} & ${priceC.toFixed(2)} & ${formattedDateXD}`;
                                             const updatedTransactionsSTORE = `${cardSTORE.name} ! ${newTransactionSTORE}`;
 
                                             console.log(`Parametros Recibidos 2:\n\n${cardSTORE} | ${cardSTORE.name} | ${cardSTORE.id} | ${newTransactionSTORE}`);
