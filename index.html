@@ -51,6 +51,7 @@
             transition: transform 0.8s;
             transform-style: preserve-3d;
             position: relative;
+            min-height: 550px; /* Asegura altura consistente */
         }
         
         .card-flipper.flipped {
@@ -59,11 +60,14 @@
 
         .card-face {
             width: 100%;
+            min-height: 550px;
             padding: 40px;
             background-color: var(--white-color);
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             position: absolute;
+            top: 0;
+            left: 0;
             backface-visibility: hidden;
             display: flex;
             flex-direction: column;
@@ -71,25 +75,18 @@
         }
         
         .card-face--front {
-            /* z-index: 2; */ /* No es necesario */
+             justify-content: center;
         }
 
         .card-face--back {
             transform: rotateY(180deg);
+            justify-content: center;
         }
         
-        /* Contenedor de Carga */
         .card-face--loader {
-            transform: rotateY(180deg);
-            background: var(--white-color);
-        }
-        
-        .card-flipper.loading .card-face--front {
-            display: none;
-        }
-        
-        .card-flipper.loading .card-face--back {
-            display: none;
+            transform: rotateY(0deg); /* Se muestra en la cara frontal */
+            justify-content: center;
+            z-index: 10;
         }
 
         /* Logo */
@@ -217,7 +214,6 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            height: 350px;
         }
 
         .loader-animation {
@@ -309,7 +305,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
     </style>
 </head>
@@ -406,65 +402,32 @@
             const store = urlParams.get('store') || 'Tienda Desconocida';
             
             // --- FUNCIONES ---
-            
-            /**
-             * Muestra el modal de notificaciones con un mensaje y título específicos.
-             * @param {string} title - El título del modal.
-             * @param {string} message - El mensaje a mostrar.
-             * @param {'success' | 'error' | 'info'} type - El tipo de notificación.
-             */
             function showNotification(title, message, type = 'info') {
                 modalTitle.textContent = title;
-                modalMessage.innerHTML = message; // Usamos innerHTML para permitir saltos de línea
-                
+                modalMessage.innerHTML = message;
                 modalCloseBtn.textContent = 'Cerrar';
-                modalCloseBtn.className = 'btn'; // Reset class
+                modalCloseBtn.className = 'btn';
                 
-                if (type === 'success') {
-                    modalCloseBtn.classList.add('btn-success');
-                } else if (type === 'error') {
-                    modalCloseBtn.classList.add('btn-danger');
-                } else {
-                    modalCloseBtn.classList.add('btn-primary');
-                }
+                if (type === 'success') modalCloseBtn.classList.add('btn-success');
+                else if (type === 'error') modalCloseBtn.classList.add('btn-danger');
+                else modalCloseBtn.classList.add('btn-primary');
 
                 modal.style.display = 'flex';
             }
 
-            // Evento para cerrar el modal
-            modalCloseBtn.addEventListener('click', () => {
-                modal.style.display = 'none';
-                // Si la transacción fue rechazada o hubo un error, podría ser útil no cerrar la ventana.
-                // end_purchase(); // Comentado para que el usuario decida.
-            });
-            
+            modalCloseBtn.addEventListener('click', () => modal.style.display = 'none');
             window.addEventListener('click', (event) => {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
+                if (event.target == modal) modal.style.display = 'none';
             });
             
-             /**
-             * Cierra la ventana actual.
-             */
             function end_purchase() {
-                // Ya no usamos confirm, cerramos directamente o mostramos modal final.
                  window.close();
             }
 
-            /**
-             * Genera un ID de factura aleatorio de 5 dígitos.
-             * @returns {number}
-             */
             function generateRandomID() {
                 return Math.floor(10000 + Math.random() * 90000);
             }
             
-            /**
-             * Verifica las credenciales del usuario contra la API de Trello.
-             * @param {string} username - El nombre de usuario.
-             * @param {string} password - La contraseña.
-             */
             async function checkLogin(username, password) {
                 try {
                     const response = await fetch(`https://api.trello.com/1/boards/${boardId}/cards?key=${apiKey}&token=${token}`);
@@ -488,7 +451,7 @@
                         
                         cardFlipper.classList.add('flipped');
                     } else {
-                        showNotification('Error de Autenticación', 'El usuario o la contraseña son incorrectos. Por favor, inténtalo de nuevo.', 'error');
+                        showNotification('Error de Autenticación', 'El usuario o la contraseña son incorrectos.', 'error');
                     }
                 } catch (error) {
                     console.error('Error al conectarse a Trello:', error);
@@ -497,120 +460,102 @@
             }
 
             /**
-             * Procesa la transacción completa, actualizando saldos y registrando la operación en Trello.
-             * Esta es una versión refactorizada y simplificada de tu lógica original.
-             * @param {string} userC - Usuario cliente.
-             * @param {string} descriptionC - Descripción de la compra.
-             * @param {number} priceC - Precio de la compra.
-             * @param {string} invoiceNumberC - Número de factura.
-             * @param {string} storeC - Nombre de la tienda.
+             * [CORREGIDO] Procesa la transacción completa, actualizando saldos, movimientos y registrando la operación en Trello.
              */
             async function makeTransaction(userC, descriptionC, priceC, invoiceNumberC, storeC) {
-                // Mostrar animación de carga
+                // Muestra la animación de carga
                 loginView.classList.add('hidden');
                 purchaseView.classList.add('hidden');
                 loaderView.classList.remove('hidden');
                 
                 // Simula el tiempo de procesamiento de 10 segundos
-                await new Promise(resolve => setTimeout(resolve, 10000));
+                await new Promise(resolve => setTimeout(resolve, 8000));
 
                 try {
-                    // 1. Obtener todas las listas del tablero
-                    const listsResponse = await fetch(`https://api.trello.com/1/boards/${boardId}/lists?key=${apiKey}&token=${token}`);
-                    const lists = await listsResponse.json();
-                    const idsList = lists.find(list => list.name === 'IDS');
+                    // --- 1. OBTENER TODAS LAS TARJETAS UNA SOLA VEZ ---
+                    const allCardsResponse = await fetch(`https://api.trello.com/1/boards/${boardId}/cards?key=${apiKey}&token=${token}`);
+                    if (!allCardsResponse.ok) throw new Error('No se pudieron obtener los datos de Trello.');
+                    const allCards = await allCardsResponse.json();
 
-                    if (!idsList) {
-                        throw new Error("La lista 'IDS' para registrar transacciones no fue encontrada.");
-                    }
+                    // --- 2. ENCONTRAR TODAS LAS TARJETAS NECESARIAS ---
+                    const clientAccountCard = allCards.find(c => c.name.startsWith(`${userC} | `));
+                    const clientMovementCard = allCards.find(c => c.name.startsWith(`${userC} / `));
+                    const storeAccountCard = allCards.find(c => c.name.startsWith(`${storeC} | `));
 
-                    // 2. Crear la tarjeta de registro de la transacción
-                    const formattedDate = new Date().toLocaleString('es-ES');
-                    const cardName = `#: ${invoiceNumberC} | TYPE: TRANSFER | FROM: ${userC} | TO: ${storeC} | DESC: ${descriptionC} | AMOUNT: ${priceC.toFixed(2)} | ISO_DATE: ${formattedDate}`;
-                    await fetch(`https://api.trello.com/1/cards?key=${apiKey}&token=${token}&idList=${idsList.id}&name=${cardName}`, {
-                        method: 'POST'
-                    });
+                    // --- 3. VALIDAR QUE TODAS LAS TARJETAS EXISTEN ---
+                    if (!clientAccountCard) throw new Error(`La cuenta del cliente '${userC}' no fue encontrada.`);
+                    if (!clientMovementCard) throw new Error(`El historial de movimientos del cliente '${userC}' no fue encontrado.`);
+                    if (!storeAccountCard) throw new Error(`La cuenta de la tienda '${storeC}' no fue encontrada.`);
 
-                    // 3. Obtener todas las tarjetas para encontrar las de usuario y tienda
-                    const cardsResponse = await fetch(`https://api.trello.com/1/boards/${boardId}/cards?key=${apiKey}&token=${token}`);
-                    const cards = await cardsResponse.json();
-
-                    // --- LÓGICA DEL CLIENTE ---
-                    const clientAccountCard = cards.find(c => c.name.startsWith(`${userC} | `));
-                    if (!clientAccountCard) throw new Error(`Cuenta del cliente '${userC}' no encontrada.`);
-
+                    // --- 4. VALIDAR CUENTA DEL CLIENTE Y FONDOS ---
                     const clientParts = clientAccountCard.name.split(' | ').map(p => p.trim());
-                    const isClientCardEnabled = clientParts[6] === 'true';
+                    if (clientParts[6] !== 'true') throw new Error("La tarjeta del cliente se encuentra bloqueada.");
+                    
                     let clientBalance = clientParts[2];
-
-                    if (!isClientCardEnabled) throw new Error("La tarjeta del cliente se encuentra bloqueada.");
-
                     if (clientBalance !== 'inf' && parseFloat(clientBalance) < priceC) {
                         throw new Error("Fondos insuficientes en la cuenta del cliente.");
                     }
 
-                    // Actualizar saldo del cliente
+                    // --- 5. ACTUALIZAR SALDOS (CLIENTE Y TIENDA) ---
+                    // Cliente
                     if (clientBalance !== 'inf') {
                         const newClientBalance = (parseFloat(clientBalance) - priceC).toFixed(2);
                         clientParts[2] = newClientBalance;
-                        const updatedClientAccountName = clientParts.join(' | ');
-                        await fetch(`https://api.trello.com/1/cards/${clientAccountCard.id}?key=${apiKey}&token=${token}&name=${encodeURIComponent(updatedClientAccountName)}`, {
-                            method: 'PUT'
-                        });
+                        const updatedClientName = clientParts.join(' | ');
+                        await fetch(`https://api.trello.com/1/cards/${clientAccountCard.id}?key=${apiKey}&token=${token}&name=${encodeURIComponent(updatedClientName)}`, { method: 'PUT' });
+                    }
+                    // Tienda
+                    const storeParts = storeAccountCard.name.split(' | ').map(p => p.trim());
+                    let storeBalance = storeParts[2];
+                    if (storeBalance !== 'inf') {
+                        const newStoreBalance = (parseFloat(storeBalance) + priceC).toFixed(2);
+                        storeParts[2] = newStoreBalance;
+                        const updatedStoreName = storeParts.join(' | ');
+                        await fetch(`https://api.trello.com/1/cards/${storeAccountCard.id}?key=${apiKey}&token=${token}&name=${encodeURIComponent(updatedStoreName)}`, { method: 'PUT' });
                     }
 
-                    // --- LÓGICA DE LA TIENDA ---
-                    const storeAccountCard = cards.find(c => c.name.startsWith(`${storeC} | `));
-                    if (storeAccountCard) {
-                        const storeParts = storeAccountCard.name.split(' | ').map(p => p.trim());
-                        let storeBalance = storeParts[2];
-                        
-                        if (storeBalance !== 'inf') {
-                            const newStoreBalance = (parseFloat(storeBalance) + priceC).toFixed(2);
-                            storeParts[2] = newStoreBalance;
-                            const updatedStoreAccountName = storeParts.join(' | ');
-                             await fetch(`https://api.trello.com/1/cards/${storeAccountCard.id}?key=${apiKey}&token=${token}&name=${encodeURIComponent(updatedStoreAccountName)}`, {
-                                method: 'PUT'
-                            });
-                        }
-                    }
+                    // --- 6. ACTUALIZAR TARJETA DE MOVIMIENTOS DEL CLIENTE ---
+                    const newTransactionMovement = `${descriptionC} & ${priceC.toFixed(2)}`;
+                    const updatedMovements = `${clientMovementCard.name} ! ${newTransactionMovement}`;
+                    await fetch(`https://api.trello.com/1/cards/${clientMovementCard.id}?key=${apiKey}&token=${token}&name=${encodeURIComponent(updatedMovements)}`, { method: 'PUT' });
+                    
+                    // --- 7. REGISTRAR TRANSACCIÓN EN LA LISTA 'IDS' ---
+                    const listsResponse = await fetch(`https://api.trello.com/1/boards/${boardId}/lists?key=${apiKey}&token=${token}`);
+                    const lists = await listsResponse.json();
+                    const idsList = lists.find(list => list.name === 'IDS');
+                    if (!idsList) throw new Error("La lista 'IDS' no fue encontrada.");
+                    
+                    const isoDate = new Date().toISOString();
+                    const logName = `#: ${invoiceNumberC} | TYPE: TRANSFER | FROM: ${userC} | TO: ${storeC} | DESC: ${descriptionC} | AMOUNT: ${priceC.toFixed(2)} | ISO_DATE: ${isoDate}`;
+                    
+                    const createLogResponse = await fetch(`https://api.trello.com/1/cards?key=${apiKey}&token=${token}&idList=${idsList.id}&name=${encodeURIComponent(logName)}`, { method: 'POST' });
+                     if (!createLogResponse.ok) throw new Error("No se pudo crear el registro de la transacción.");
 
-                    // --- NOTIFICACIÓN DE ÉXITO ---
-                    showNotification('¡Transacción Aprobada!', `La compra #${invoiceNumberC} por un valor de $${priceC.toFixed(2)} se ha completado con éxito.`, 'success');
-                    modalCloseBtn.onclick = () => end_purchase();
+                    // --- 8. NOTIFICACIÓN DE ÉXITO ---
+                    showNotification('¡Transacción Aprobada!', `La compra #${invoiceNumberC} por $${priceC.toFixed(2)} se ha completado.`, 'success');
+                    modalCloseBtn.onclick = end_purchase;
 
                 } catch (error) {
                     console.error('Error durante la transacción:', error);
                     showNotification('Transacción Rechazada', `Hubo un problema al procesar tu compra. <br><strong>Motivo:</strong> ${error.message}`, 'error');
                 } finally {
-                    // Ocultar la carga después del proceso
                     loaderView.classList.add('hidden');
                 }
             }
 
-
             // --- EVENT LISTENERS ---
-            
             loginForm.addEventListener('submit', function(event) {
                 event.preventDefault();
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value.trim();
-                if (username && password) {
-                    checkLogin(username, password);
-                } else {
-                    showNotification('Datos Incompletos', 'Por favor, introduce tu usuario y contraseña.', 'error');
-                }
+                checkLogin(usernameInput.value.trim(), passwordInput.value.trim());
             });
 
             confirmBtn.addEventListener('click', function() {
-                const user = usernameInput.value;
-                const invoiceNumber = document.getElementById('invoiceNumber').textContent;
-                makeTransaction(user, description, price, invoiceNumber, store);
+                makeTransaction(usernameInput.value, description, price, document.getElementById('invoiceNumber').textContent, store);
             });
 
             rejectBtn.addEventListener('click', function() {
                 showNotification('Compra Cancelada', 'Has cancelado el proceso de pago.', 'info');
-                modalCloseBtn.onclick = () => end_purchase();
+                modalCloseBtn.onclick = end_purchase;
             });
         });
     </script>
