@@ -526,7 +526,7 @@
 
                     // 2. Crear la tarjeta de registro de la transacción
                     const formattedDate = new Date().toLocaleString('es-ES');
-                    const cardName = `#${invoiceNumberC} | STORE: ${storeC} | ${userC} | ${descriptionC} | $${priceC.toFixed(2)} | ${formattedDate}`;
+                    const cardName = `#: ${invoiceNumberC} | TYPE: TRANSFER | FROM: ${userC} | TO: ${storeC} | DESC: ${descriptionC} | AMOUNT: ${priceC.toFixed(2)} | ISO_DATE: ${formattedDate}`;
                     await fetch(`https://api.trello.com/1/cards?key=${apiKey}&token=${token}&idList=${idsList.id}&name=${cardName}`, {
                         method: 'POST'
                     });
